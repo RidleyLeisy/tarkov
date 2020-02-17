@@ -7,8 +7,6 @@ from app import app
 
 import pandas as pd
 
-
-
 df = pd.read_csv('init.csv')
 
 caliber_types = df['Caliber'].unique()
@@ -45,15 +43,3 @@ layout = html.Div(children=[
 
 ])
 
-@app.callback(
-    dash.dependencies.Output('ammo-selector','figure'),
-    [dash.dependencies.Input('ammo-select','value')]
-)
-def update_ammo(ammo_type):
-    dff = df.loc[df['Caliber'].isin(ammo_type)]
-    return {'data': [dict(
-                x = dff["Name"],
-                y = dff["Caliber"], 
-                type='bar',
-
-    )]}

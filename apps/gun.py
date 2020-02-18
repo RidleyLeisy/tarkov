@@ -30,7 +30,7 @@ layout = html.Div(children=[
         id='ammo-selector',
         figure={
             'data': [{
-                'x': df["Name"],'y': df["Caliber"], 'type':'bar',
+                'x': df["Bullet Name"],'y': df["Caliber"], 'type':'bar',
 
             }],
             'layout': {

@@ -27,64 +27,86 @@ layout = (dbc.NavbarSimple(
         color="primary",
         dark=True,
     ),
-    html.H1(children='Ammo Analyzer',style={'text-align':'center'}),
+    html.H1(children='Ammo Analyzer',style={'text-align':'center','backgroundColor':'#F9F9F9'}),
     
     html.Div(children=[
-        html.Label('Multi-Select Dropdown'),
     
     # filters for ammo graph
+
+    # ammo graph
     html.Div([
-        html.Div([  
+        
+       html.Div([html.P("Filter by dimension:",className="dimen_label"),
             dcc.Dropdown(
             id='ammo-dimension',
             options=[{'label': i, 'value': i} for i in dimensions],
             multi=False,
-            value='Armor Damage (%)'
+            value='Armor Damage (%)',
+            className="dcc_control"
         ),  
+            html.P("Filter by Ammo Type:",className="ammo_label"),
             dcc.Dropdown(
             id='ammo-type',
             options=[{'label': i, 'value': i} for i in caliber_types],
             multi=True,
-            value=['12/70 slugs']
-        ),
-        ],
-        style={'width': '49%', 'display': 'inline-block'}),
-    ]),
-    # ammo graph
-    html.Div([
-        dcc.Graph(
+            value=['12/70 slugs'],
+            className="dcc_control"
+        )],className="mini_container"),
+
+        html.Div([
+            dcc.Graph(
             id='ammo-selector', 
             figure= {'layout':{'clickmode': 'event+select'}},
-            clickData= {'points': [{'bullet_name': '12/70 FTX Custom LIte Slug'}]},
+            clickData= {'points': [{'label': '12/70 FTX Custom LIte Slug'}]},
             config={'autosizable': True},
                 )], 
-            style={'width': '70%', 'margin': '0 auto'},
+            )],
+            className="pretty_container ten columns"
+
             
     ),
 
-    html.Div([
-        dcc.Markdown(d("""
-            **Click Data**
+        html.Div(
+        [
+            html.Div(
+                [
+                    html.Div(
+                        [html.P("Current Price"), html.H6(id="currentPrice")],
+                        id="cPrice",
+                        className="one column",
+                    ),
+                    html.Div(
+                        [ html.P("Past 24 Hours"), html.H6(id="past24")],
+                        id="24Price",
+                        className="two column",
+                    ),
+                    html.Div(
+                        [html.P("Past 7 Days"), html.H6(id="past7d")],
+                        id="7d",
+                        className="three column",
+                    ),
+                ],
+                id="info-container",
+                className="column container-display",
+            ),
+        ]),
 
-            Click on points in the graph.
-        """)),
-        html.Pre(id='click-data', style = {
-                                            'pre': {
-                                                'border': 'thin lightgrey solid',
-                                                'overflowX': 'scroll'
-                                            }
-                                        }),
-    ], className='three columns'),
+    # html.Div([
+    #     dcc.Markdown(d("""
+    #         **Click Data**
 
+    #         Click on points in the graph.
+    #     """)),
+    #     html.Pre(id='click-data', style = {
+    #                                         'pre': {
+    #                                             'border': 'thin lightgrey solid',
+    #                                             'overflowX': 'scroll'
+    #                                         }
+    #                                     }),
+    # ], className='three columns'),
 
+],style={'backgroundColor':'#F9F9F9'}))
 
-    dcc.Graph(
-        id='ammo-pen',
-        figure={
-
-        }
-    )
-]))
 
 @app.callback(
     dash.dependencies.Output('ammo-selector','figure'),
@@ -94,19 +116,41 @@ layout = (dbc.NavbarSimple(
 def update_ammo(ammo_type, ammo_dimen):
     dff = df.loc[df['Caliber'].isin(ammo_type)].sort_values(by=ammo_dimen)
     return {'data': [dict(
-                x = dff[ammo_dimen],
-                y = dff["Bullet Name"],
+                x = dff["Bullet Name"],
+                y = dff[ammo_dimen],
                 type='bar',
-                orientation='h',
 
     )]}
 
 
+# Current Price
+@app.callback(
+    Output('past24', 'children'),
+    [Input('ammo-selector', 'clickData')])
+def display_click_data_24(clickData):
+   
+    bullet_name = clickData['points'][0]['label']
+    dff = df.loc[df['Bullet Name'] == bullet_name]['24 hour Price Diff']
+
+    return dff.to_json(orient='records')
+
+# 24 Hour Price
+@app.callback(
+    Output('past7d', 'children'),
+    [Input('ammo-selector', 'clickData')])
+def display_click_data_7d(clickData):
+    
+    bullet_name = clickData['points'][0]['label']
+    dff = df.loc[df['Bullet Name'] == bullet_name]['1 week Price Diff']
+
+    return dff.to_json(orient='records')
+
 
 @app.callback(
-    Output('click-data', 'children'),
+    Output('currentPrice', 'children'),
     [Input('ammo-selector', 'clickData')])
-def display_click_data(clickData):
+def display_click_data_c(clickData):
+    
     bullet_name = clickData['points'][0]['label']
     dff = df.loc[df['Bullet Name'] == bullet_name]['Current Price']
 

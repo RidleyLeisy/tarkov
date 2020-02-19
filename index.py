@@ -7,6 +7,7 @@ from app import app
 from apps import ammo, gun
 
 
+
 app.layout = (html.Div([
     dcc.Location(id='url', refresh=False),
     html.Div(id='page-content'),

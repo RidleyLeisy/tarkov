@@ -33,54 +33,59 @@ layout = (dbc.NavbarSimple(
     html.Div([
         html.H3('Tarkov Ammo Updates'),
         dbc.Row([
-            dbc.Col([html.H5('Priciest Ammo'),
-            html.H6(df[['Bullet Name','Current Price']].max()['Bullet Name']),
+            dbc.Col(
+            dbc.CardHeader([html.H5('Priciest Ammo'),
+            dbc.CardBody(html.H6(df[['Bullet Name','Current Price']].max()['Bullet Name'])),
     
-            ],id="pricey_num"),
+            ],id="pricey_num"),),
+            dbc.Col(
+            dbc.CardHeader([html.H5('Cheapest Ammo'),
+            dbc.CardBody(html.H6(df[['Bullet Name','Current Price']].min()['Bullet Name'])),
 
-            dbc.Col([html.H5('Cheapest Ammo'),
-            html.H6(df[['Bullet Name','Current Price']].min()['Bullet Name']),
+            ],id="chaep_num"),),
+            dbc.Col(
+            dbc.CardHeader([html.H5('Higheset Weekly Price Increase'),
+            dbc.CardBody(html.H6(df[['Bullet Name','1 week Price Diff']].max()['Bullet Name'])),
     
-            ],id="chaep_num"),
-            
-            dbc.Col([html.H5('Higheset Weekly Price Increase'),
-            html.H6(df[['Bullet Name','1 week Price Diff']].max()['Bullet Name']),
+            ],id="weekly_in_num"),),
+            dbc.Col(
+            dbc.CardHeader([html.H5('Lowest Weekly Price Increase'),
+            dbc.CardBody(html.H6(df[['Bullet Name','1 week Price Diff']].min()['Bullet Name'])),
     
-            ],id="weekly_in_num"),
-            
-            dbc.Col([html.H5('Lowest Weekly Price Increase'),
-            html.H6(df[['Bullet Name','1 week Price Diff']].min()['Bullet Name']),
-    
-            ],id="weekly_de_num"),
+            ],id="weekly_de_num"),),
 
-            ]),
-        ]),
-
+            ],align='center',style={'width':'auto'}),
+        ],style={'padding':'3%','textAlign':'center'}),
+  
     
     
     # filters for ammo graph
     # ammo graph
    
     html.Div([
-       html.Div([
-           html.P("Filter by dimension:",className="dimen_label"),
+       dbc.Row([
+           dbc.Col([
+           html.H6("Filter by dimension",style={'textAlign':'center'}),
                 dcc.Dropdown(
                 id='ammo-dimension',
                 options=[{'label': i, 'value': i} for i in dimensions],
                 multi=True,
                 value=['Flesh Damage','Penetration Power'],
-                className="row container"
-                        ),  
-            html.P("Filter by Ammo Type:",className="ammo_label"),
+                style={'width':'auto','margin-left':'1in'}),
+                ],
+                align='center'),
+            dbc.Col([
+            html.H6("Filter by Ammo Type",style={'textAlign':'center'}),
                 dcc.Dropdown(
                 id='ammo-type',
                 options=[{'label': i, 'value': i} for i in caliber_types],
                 multi=True,
                 value=['12/70 slugs'],
-                className="row container"
-                            )
-        ]),
-            ],className="twelve columns"),       
+                style={'width':'auto','margin-left':'1in'})
+        ],
+        align='center'),
+        ],align='center',style={'width':'auto'}),
+            ]),       
     
 
     html.Div([
@@ -94,21 +99,13 @@ layout = (dbc.NavbarSimple(
                         )
                     ],width=9,align='start'),
         dbc.Col([
-            dbc.Row(
-                    [html.P("Current Price"), html.H6(id="currentPrice")],
-                    id="cPrice",
-                    
-                        ),
-            dbc.Row(
-                    [ html.P("Past 24 Hours"), html.H6(id="past24")],
-                    id="24Price",
-                   
-                        ),
-            dbc.Row(
-                    [html.P("Past 7 Days"), html.H6(id="past7d")],
-                    id="7d",
-                    ),
-                    
+                html.H6('Daily Pricing',style={'textAlign':'center'}),
+                html.Table([
+                    html.Tr([html.Td(['Ammo Selected']), html.Td(id='ammoSelect')],style={'background-color': '#f5f5f5'}),
+                    html.Tr([html.Td(['Current Price (R)']), html.Td(id='currentPrice')]),
+                    html.Tr([html.Td(['Past 24 Hours (%)']), html.Td(id='past24')]),
+                    html.Tr([html.Td(['Past 7 Days (%)']), html.Td(id='past7d')]),
+                ],style={'title':'Pricing'}),     
                 ],align='center'),
             ])
             ]),
@@ -117,7 +114,7 @@ layout = (dbc.NavbarSimple(
     # penetration by price
     html.Div([
        html.Div([
-           html.P("Filter by dimension:",className="dimen_by_price"),
+           html.H6("Filter by dimension",style={'textAlign':'left','margin-left':'1in'}),
                 dcc.Dropdown(
                 id='ammo-dimension-p',
                 options=[{'label': i, 'value': i} for i in pricing_dimensions],
@@ -125,7 +122,7 @@ layout = (dbc.NavbarSimple(
                 value='Armor Damage (%)',
                 className="row container"
                         ),  
-            html.P("Filter by Ammo Type:",className="ammo_label_p"),
+            html.H6("Filter by Ammo Type",style={'textAlign':'left','margin-left':'1in'}),
                 dcc.Dropdown(
                 id='ammo-type-p',
                 options=[{'label': i, 'value': i} for i in caliber_types],
@@ -147,7 +144,6 @@ layout = (dbc.NavbarSimple(
                 
 
 )
-
 
 
 
@@ -204,6 +200,18 @@ def create_price_graph(ammo_type_p,ammo_dimen):
     return data
 
 
+
+# Ammo Click Data
+@app.callback(
+    Output('ammoSelect', 'children'),
+    [Input('ammo-selector-graph', 'clickData')])
+def display_click_data_ammo(clickData):
+   
+    bullet_name = clickData['points'][0]['label']
+    
+    return bullet_name
+
+
 # 24 Price
 @app.callback(
     Output('past24', 'children'),
@@ -211,9 +219,9 @@ def create_price_graph(ammo_type_p,ammo_dimen):
 def display_click_data_24(clickData):
    
     bullet_name = clickData['points'][0]['label']
-    dff = df.loc[df['Bullet Name'] == bullet_name]['24 hour Price Diff']
+    price = df.loc[df['Bullet Name'] == bullet_name]['24 hour Price Diff']
     
-    return dff.to_json(orient='records')
+    return price
 
 # Week Price
 @app.callback(
@@ -222,9 +230,9 @@ def display_click_data_24(clickData):
 def display_click_data_7d(clickData):
     
     bullet_name = clickData['points'][0]['label']
-    dff = df.loc[df['Bullet Name'] == bullet_name]['1 week Price Diff']
+    price = df.loc[df['Bullet Name'] == bullet_name]['1 week Price Diff']
 
-    return dff.to_json(orient='records')
+    return price
 
 # Current Price
 @app.callback(
@@ -233,9 +241,9 @@ def display_click_data_7d(clickData):
 def display_click_data_c(clickData):
     
     bullet_name = clickData['points'][0]['label']
-    dff = df.loc[df['Bullet Name'] == bullet_name]['Current Price']
+    price = df.loc[df['Bullet Name'] == bullet_name]['Current Price']
 
-    return dff.to_json(orient='records')
+    return price
 
 # Most expensive ammo
 @app.callback(

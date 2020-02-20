@@ -15,6 +15,7 @@ df = pd.read_csv('init.csv')
 
 caliber_types = df['Caliber'].unique()
 dimensions = ['Flesh Damage','Penetration Power','Armor Damage (%)','Accuracy (%)','Recoil (%)','Fragmentation Chance (%)']
+pricing_dimensions = ['Pen Power by Price','Flesh Damage by Price']
 
 layout = (dbc.NavbarSimple(
         children=[
@@ -29,6 +30,32 @@ layout = (dbc.NavbarSimple(
     ),
     html.H1(children='Ammo Analyzer',style={'text-align':'center','backgroundColor':'#F9F9F9'}),
     
+    html.Div([
+        html.H3('Tarkov Ammo Updates'),
+        dbc.Row([
+            dbc.Col([html.H5('Priciest Ammo'),
+            html.H6(df[['Bullet Name','Current Price']].max()['Bullet Name']),
+    
+            ],id="pricey_num"),
+
+            dbc.Col([html.H5('Cheapest Ammo'),
+            html.H6(df[['Bullet Name','Current Price']].min()['Bullet Name']),
+    
+            ],id="chaep_num"),
+            
+            dbc.Col([html.H5('Higheset Weekly Price Increase'),
+            html.H6(df[['Bullet Name','1 week Price Diff']].max()['Bullet Name']),
+    
+            ],id="weekly_in_num"),
+            
+            dbc.Col([html.H5('Lowest Weekly Price Increase'),
+            html.H6(df[['Bullet Name','1 week Price Diff']].min()['Bullet Name']),
+    
+            ],id="weekly_de_num"),
+
+            ]),
+        ]),
+
     
     
     # filters for ammo graph
@@ -60,7 +87,7 @@ layout = (dbc.NavbarSimple(
         dbc.Row([
             dbc.Col([
                 dcc.Graph(
-                id='ammo-selector-p', 
+                id='ammo-selector-graph', 
                 figure= {'layout':{'clickmode': 'event+select'}},
                 clickData= {'points': [{'label': '12/70 FTX Custom LIte Slug'}]},
                 
@@ -93,8 +120,7 @@ layout = (dbc.NavbarSimple(
            html.P("Filter by dimension:",className="dimen_by_price"),
                 dcc.Dropdown(
                 id='ammo-dimension-p',
-                options=[{'label': 'Penetration Power', 'value': 'Penetration Power'},
-                {'label': 'Flesh Damage', 'value': 'Flesh Damage'}],
+                options=[{'label': i, 'value': i} for i in pricing_dimensions],
                 multi=False,
                 value='Armor Damage (%)',
                 className="row container"
@@ -108,20 +134,31 @@ layout = (dbc.NavbarSimple(
                 className="row container"
                             )
         ]),
+        dbc.Col([
+    
+            dcc.Graph(
+                id='ammo-price-graph', 
+                figure= {'layout':{'clickmode': 'event+select'}},
+                clickData= {'points': [{'label': '12/70 FTX Custom LIte Slug'}]},
+                
+                        )
+                    ],width=9,align='start'),
             ],className="twelve columns"),
                 
-    
+
 )
+
+
 
 
 # Main graph callback
 @app.callback(
-    dash.dependencies.Output('ammo-selector-p','figure'),
+    dash.dependencies.Output('ammo-selector-graph','figure'),
     [dash.dependencies.Input('ammo-type','value'),
     dash.dependencies.Input('ammo-dimension','value')]
 )
 def update_ammo_test(ammo_type, ammo_dimen):
-    # {'x': [1, 2, 3], 'y': [4, 1, 2], 'type': 'bar', 'name': 'SF'},
+    
     dic = {'data':[]}
     length = len(ammo_dimen)
     count = 0
@@ -141,7 +178,7 @@ def update_ammo_test(ammo_type, ammo_dimen):
     return dic
 
 
-# Return same ammo filters as first graph for pricing graph
+# Return same ammo as first graph for pricing graph
 @app.callback(
     dash.dependencies.Output('ammo-type-p','value'),
     [dash.dependencies.Input('ammo-type','value')]
@@ -150,21 +187,38 @@ def update_ammo_p(ammo_type):
     return ammo_type
 
 
-# Current Price
+# Price Graph
+@app.callback(
+    dash.dependencies.Output('ammo-price-graph','figure'),
+    [dash.dependencies.Input('ammo-type-p','value'),
+    dash.dependencies.Input('ammo-dimension-p','value')]
+)
+def create_price_graph(ammo_type_p,ammo_dimen):
+    dff = df.loc[df['Caliber'].isin(ammo_type_p)].sort_values(by=ammo_dimen)
+    
+    data = {'data': [dict(
+                x = dff[ammo_dimen],
+                y = dff["Bullet Name"],
+                type='bar',
+                orientation='h',)]}
+    return data
+
+
+# 24 Price
 @app.callback(
     Output('past24', 'children'),
-    [Input('ammo-selector', 'clickData')])
+    [Input('ammo-selector-graph', 'clickData')])
 def display_click_data_24(clickData):
    
     bullet_name = clickData['points'][0]['label']
     dff = df.loc[df['Bullet Name'] == bullet_name]['24 hour Price Diff']
-
+    
     return dff.to_json(orient='records')
 
-# 24 Hour Price
+# Week Price
 @app.callback(
     Output('past7d', 'children'),
-    [Input('ammo-selector', 'clickData')])
+    [Input('ammo-selector-graph', 'clickData')])
 def display_click_data_7d(clickData):
     
     bullet_name = clickData['points'][0]['label']
@@ -172,13 +226,21 @@ def display_click_data_7d(clickData):
 
     return dff.to_json(orient='records')
 
-
+# Current Price
 @app.callback(
     Output('currentPrice', 'children'),
-    [Input('ammo-selector', 'clickData')])
+    [Input('ammo-selector-graph', 'clickData')])
 def display_click_data_c(clickData):
     
     bullet_name = clickData['points'][0]['label']
     dff = df.loc[df['Bullet Name'] == bullet_name]['Current Price']
 
     return dff.to_json(orient='records')
+
+# Most expensive ammo
+@app.callback(
+    Output('pricey_num', 'value'),
+)
+def most_exp_ammo():
+    data = df[['Bullet Name','Current Price']].max()['Bullet Name']
+    return data

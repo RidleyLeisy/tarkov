@@ -29,98 +29,125 @@ layout = (dbc.NavbarSimple(
     ),
     html.H1(children='Ammo Analyzer',style={'text-align':'center','backgroundColor':'#F9F9F9'}),
     
-    html.Div(children=[
+    
     
     # filters for ammo graph
-
     # ammo graph
+   
     html.Div([
-        
-       html.Div([html.P("Filter by dimension:",className="dimen_label"),
-            dcc.Dropdown(
-            id='ammo-dimension',
-            options=[{'label': i, 'value': i} for i in dimensions],
-            multi=False,
-            value='Armor Damage (%)',
-            className="dcc_control"
-        ),  
+       html.Div([
+           html.P("Filter by dimension:",className="dimen_label"),
+                dcc.Dropdown(
+                id='ammo-dimension',
+                options=[{'label': i, 'value': i} for i in dimensions],
+                multi=True,
+                value=['Flesh Damage','Penetration Power'],
+                className="row container"
+                        ),  
             html.P("Filter by Ammo Type:",className="ammo_label"),
-            dcc.Dropdown(
-            id='ammo-type',
-            options=[{'label': i, 'value': i} for i in caliber_types],
-            multi=True,
-            value=['12/70 slugs'],
-            className="dcc_control"
-        )],className="mini_container"),
-
-        html.Div([
-            dcc.Graph(
-            id='ammo-selector', 
-            figure= {'layout':{'clickmode': 'event+select'}},
-            clickData= {'points': [{'label': '12/70 FTX Custom LIte Slug'}]},
-            config={'autosizable': True},
-                )], 
-            )],
-            className="pretty_container ten columns"
-
-            
-    ),
-
-        html.Div(
-        [
-            html.Div(
-                [
-                    html.Div(
-                        [html.P("Current Price"), html.H6(id="currentPrice")],
-                        id="cPrice",
-                        className="one column",
-                    ),
-                    html.Div(
-                        [ html.P("Past 24 Hours"), html.H6(id="past24")],
-                        id="24Price",
-                        className="two column",
-                    ),
-                    html.Div(
-                        [html.P("Past 7 Days"), html.H6(id="past7d")],
-                        id="7d",
-                        className="three column",
-                    ),
-                ],
-                id="info-container",
-                className="column container-display",
-            ),
+                dcc.Dropdown(
+                id='ammo-type',
+                options=[{'label': i, 'value': i} for i in caliber_types],
+                multi=True,
+                value=['12/70 slugs'],
+                className="row container"
+                            )
         ]),
+            ],className="twelve columns"),       
+    
 
-    # html.Div([
-    #     dcc.Markdown(d("""
-    #         **Click Data**
+    html.Div([
+        dbc.Row([
+            dbc.Col([
+                dcc.Graph(
+                id='ammo-selector-p', 
+                figure= {'layout':{'clickmode': 'event+select'}},
+                clickData= {'points': [{'label': '12/70 FTX Custom LIte Slug'}]},
+                
+                        )
+                    ],width=9,align='start'),
+        dbc.Col([
+            dbc.Row(
+                    [html.P("Current Price"), html.H6(id="currentPrice")],
+                    id="cPrice",
+                    
+                        ),
+            dbc.Row(
+                    [ html.P("Past 24 Hours"), html.H6(id="past24")],
+                    id="24Price",
+                   
+                        ),
+            dbc.Row(
+                    [html.P("Past 7 Days"), html.H6(id="past7d")],
+                    id="7d",
+                    ),
+                    
+                ],align='center'),
+            ])
+            ]),
+            
+    
+    # penetration by price
+    html.Div([
+       html.Div([
+           html.P("Filter by dimension:",className="dimen_by_price"),
+                dcc.Dropdown(
+                id='ammo-dimension-p',
+                options=[{'label': 'Penetration Power', 'value': 'Penetration Power'},
+                {'label': 'Flesh Damage', 'value': 'Flesh Damage'}],
+                multi=False,
+                value='Armor Damage (%)',
+                className="row container"
+                        ),  
+            html.P("Filter by Ammo Type:",className="ammo_label_p"),
+                dcc.Dropdown(
+                id='ammo-type-p',
+                options=[{'label': i, 'value': i} for i in caliber_types],
+                multi=True,
+                value=['12/70 slugs'],
+                className="row container"
+                            )
+        ]),
+            ],className="twelve columns"),
+                
+    
+)
 
-    #         Click on points in the graph.
-    #     """)),
-    #     html.Pre(id='click-data', style = {
-    #                                         'pre': {
-    #                                             'border': 'thin lightgrey solid',
-    #                                             'overflowX': 'scroll'
-    #                                         }
-    #                                     }),
-    # ], className='three columns'),
 
-],style={'backgroundColor':'#F9F9F9'}))
-
-
+# Main graph callback
 @app.callback(
-    dash.dependencies.Output('ammo-selector','figure'),
+    dash.dependencies.Output('ammo-selector-p','figure'),
     [dash.dependencies.Input('ammo-type','value'),
     dash.dependencies.Input('ammo-dimension','value')]
 )
-def update_ammo(ammo_type, ammo_dimen):
-    dff = df.loc[df['Caliber'].isin(ammo_type)].sort_values(by=ammo_dimen)
-    return {'data': [dict(
-                x = dff["Bullet Name"],
-                y = dff[ammo_dimen],
-                type='bar',
+def update_ammo_test(ammo_type, ammo_dimen):
+    # {'x': [1, 2, 3], 'y': [4, 1, 2], 'type': 'bar', 'name': 'SF'},
+    dic = {'data':[]}
+    length = len(ammo_dimen)
+    count = 0
+    
+    for dim in ammo_dimen:
+        inside_dic = {}
+        if count < length:
+            dff = df.loc[df['Caliber'].isin(ammo_type)].sort_values(by=dim)
+            inside_dic.update({'x': dff['Bullet Name'].values})
+            inside_dic.update({'y': dff[dim].values})
+            inside_dic.update({'type':'bar'})
+            inside_dic.update({'name':dim})
+            count+=1
+        else:
+            break
+        dic['data'].append(inside_dic)
+    return dic
 
-    )]}
+
+# Return same ammo filters as first graph for pricing graph
+@app.callback(
+    dash.dependencies.Output('ammo-type-p','value'),
+    [dash.dependencies.Input('ammo-type','value')]
+)
+def update_ammo_p(ammo_type):
+    return ammo_type
 
 
 # Current Price

@@ -4,7 +4,7 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 
 from app import app
-from apps import ammo, gun
+from apps import ammo, gun, home
 
 
 
@@ -20,6 +20,8 @@ def display_page(pathname):
         return ammo.layout
     elif pathname == '/gun':
         return gun.layout
+    elif pathname == '/':
+        return home.layout
     else:
         return '404'
 

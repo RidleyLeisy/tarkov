@@ -110,29 +110,52 @@ layout = (dbc.NavbarSimple(
             ])
             ]),
             
-    
+    # maybe add pen armor values in between along with a radar chart
+
+    html.Div([
+        dbc.Row([
+            dcc.Graph(
+                id='radarFig',
+                figure={'layout': {'polar': {
+                'radialaxis': {
+                'visible': True,
+                'range': [0, 6]},
+                'line_close':True
+                                },
+            'showlegend': True}
+                        }
+            ),
+        ])
+
+    ]),
+
+
     # penetration by price
     html.Div([
-       html.Div([
-           html.H6("Filter by dimension",style={'textAlign':'left','margin-left':'1in'}),
+       dbc.Row([
+           dbc.Col([
+           html.H6("Filter by dimension",style={'textAlign':'center'}),
                 dcc.Dropdown(
                 id='ammo-dimension-p',
                 options=[{'label': i, 'value': i} for i in pricing_dimensions],
                 multi=False,
-                value='Armor Damage (%)',
-                className="row container"
+                value='Pen Power by Price',
+                style={'width':'auto','margin-left':'1in'}
                         ),  
-            html.H6("Filter by Ammo Type",style={'textAlign':'left','margin-left':'1in'}),
+                    ],align='center'),
+            dbc.Col([
+            html.H6("Filter by Ammo Type",style={'textAlign':'center'}),
                 dcc.Dropdown(
                 id='ammo-type-p',
                 options=[{'label': i, 'value': i} for i in caliber_types],
                 multi=True,
                 value=['12/70 slugs'],
-                className="row container"
+                style={'width':'auto','margin-left':'1in'}
                             )
-        ]),
+                    ],align='center'),
+        ],align='center'),
+
         dbc.Col([
-    
             dcc.Graph(
                 id='ammo-price-graph', 
                 figure= {'layout':{'clickmode': 'event+select'}},
@@ -201,7 +224,7 @@ def create_price_graph(ammo_type_p,ammo_dimen):
 
 
 
-# Ammo Click Data
+# Ammo Click Data for Table
 @app.callback(
     Output('ammoSelect', 'children'),
     [Input('ammo-selector-graph', 'clickData')])
@@ -210,6 +233,24 @@ def display_click_data_ammo(clickData):
     bullet_name = clickData['points'][0]['label']
     
     return bullet_name
+
+
+# Ammo Click Data for Radar Chart
+@app.callback(
+    Output('radarFig','figure'),
+    [Input('ammo-selector-graph','clickData')]
+)
+def radar_click_data(clickData):
+    bullet_name = clickData['points'][0]['label']
+    vals = df.loc[df['Bullet Name'] == bullet_name].loc[:,'Pentration Armor One':'Pentration Armor Six'].values[0]
+    data = {'data':[{
+    'type': 'scatterpolar',
+    'r': vals,
+    'theta': ['Level One','Level Two','Level Three', 'Level Four', 'Level Five', 'Level Six'],
+    'fill': 'toself',
+    'fillcolor':'red'}]}
+    print(data)
+    return data
 
 
 # 24 Price

@@ -45,18 +45,8 @@ pricing_dimensions = ['Pen Power by Price','Flesh Damage by Price']
 
 table_params = ['Gun Name']
 
-layout = (dbc.NavbarSimple(
-        children=[
-            dbc.NavItem(dbc.NavLink("Ammo", href="/ammo")),
-            dbc.NavItem(dbc.NavLink("Home", href="/")),
-            dbc.NavItem(dbc.NavLink("Gun", href="/gun")),
-        ],
-        brand="NavbarSimple",
-        brand_href="#",
-        color="primary",
-        dark=True,
-    ),
-    html.H1(children='Ammo Analyzer',style={'text-align':'center','backgroundColor':'#F9F9F9'}),
+layout = (
+    
     
     html.Div([
         html.H3('Tarkov Ammo Updates'),
@@ -91,6 +81,7 @@ layout = (dbc.NavbarSimple(
     # ammo graph
    
     html.Div([
+    html.H3('Ammo Analyzer',style={'textAlign':'center'}),
        dbc.Row([
            dbc.Col([
            html.H6("Filter by dimension",style={'textAlign':'center'}),
@@ -99,20 +90,20 @@ layout = (dbc.NavbarSimple(
                 options=[{'label': i, 'value': i} for i in dimensions],
                 multi=True,
                 value=['Flesh Damage','Penetration Power'],
-                style={'width':'auto','margin-left':'1in'}),
+                style={'width':'auto','margin-left':'1.3in'}),
                 ],
                 align='center'),
             dbc.Col([
-            html.H6("Filter by Ammo Type",style={'textAlign':'center'}),
+            html.H6("Filter by Ammo Type",style={'textAlign':'left'}),
                 dcc.Dropdown(
                 id='ammo-type',
                 options=[{'label': i, 'value': i} for i in caliber_types],
                 multi=True,
                 value=['12/70 slugs'],
-                style={'width':'auto','margin-left':'1in'})
+                style={'width':'auto'})
         ],
-        align='center'),
-        ],align='center',style={'width':'auto'}),
+        align='left'),
+        ],align='left',style={'width':'auto'}),
             ]),       
     
 
@@ -121,24 +112,40 @@ layout = (dbc.NavbarSimple(
             dbc.Col([
                 dcc.Graph(
                 id='ammo-selector-graph', 
-                figure= {'layout':{'clickmode': 'event+select'}},
                 clickData= {'points': [{'label': '12/70 FTX Custom LIte Slug'}]},
+                figure= {'layout':
+                        {'clickmode': 'event+select',
+                        
+                        'xaxis':{'text':'Ammo Type',
+                                    'automargin':True}},},
                 
+    
                         )
-                    ],width=9,align='start'),
+                    ],width=9),
             dbc.Col([
                 dash_table.DataTable(id='gun_table',
-                columns=[
-                {'name': 'Gun Name', 'id': 'Gun Name'}],
-                style_cell={'textAlign': 'left'},
-                    style_header={
-                'backgroundColor': 'white',
-                'fontWeight': 'bold'},
-                fill_width=False,
-                style_as_list_view=True,
+                    columns=[
+                        {'name': 'Gun Name', 'id': 'Gun Name'}],
+                    style_cell={
+                        'fontFamily': 'Open Sans',
+                        'textAlign': 'center',
+                        'height': '60px',
+                        'padding': '2px 22px',
+                        'whiteSpace': 'inherit',
+                        'overflow': 'hidden',
+                        'textOverflow': 'ellipsis',
+                    },
+                    style_table={
+                        'maxHeight': '50ex',
+                        'overflowY': 'scroll',
+                        'width': '50%',
+                        'minWidth': '50%',
+                    },
+                    fill_width=True,
+                    style_as_list_view=True,
                                     ),
                 
-            ]),
+            ],align='center'),
 
             ])
             ]),
@@ -146,55 +153,65 @@ layout = (dbc.NavbarSimple(
     # maybe add ammo compabaility with list of weapons the selected ammo can go with
 
     html.Div([
+        html.H3('Penetration and Price Breakdown',style={'textAlign':'center','padding-top': '1in'}),
         dbc.Row([
+            
             dbc.Col([
-            dcc.Graph(
-                id='radarFig',
-                figure={'layout': {'polar': {
-                'radialaxis': {
-                'visible': True,
-                'range': [0, 6]},
-                'line_close':True
+                dcc.Graph(
+                    id='radarFig',
+                    figure={'layout': 
+                    {
+                        'polar': {
+                        'radialaxis': {
+                            'visible': True,
+                            'range': [0, 6]},
+                        'line_close':True
                                 },
-            'showlegend': True}
-                        }
-            ),
-                    ]),
+                    'showlegend': True,
+                    'margin':
+                        {'r':'50','l':'50','b':'0','t':'0','autoexpand':False},
+                    'height':'550',
+        
+                    'title':
+                        {'text':'Testing this is going to be a long string'},
+                        },
+                        }),
+                    ],style={'padding':'0in'}),
             dbc.Col([
-                html.H6('Daily Pricing',style={'textAlign':'center'}),
                 html.Table([
                     html.Tr([html.Td(['Ammo Selected']), html.Td(id='ammoSelect')],style={'background-color': '#f5f5f5'}),
                     html.Tr([html.Td(['Current Price (R)']), html.Td(id='currentPrice')]),
                     html.Tr([html.Td(['Past 24 Hours (%)']), html.Td(id='past24')]),
                     html.Tr([html.Td(['Past 7 Days (%)']), html.Td(id='past7d')]),
-                ],style={'title':'Pricing'}),     
+                ],style={'title':'Pricing','width':'500px'}),     
                 ],align='center'),
-        ])
+        ], style={'height': '49%'})
 
     ]),
 
 
     # penetration by price
     html.Div([
+        html.H3('Ammo by Price',style={'textAlign':'center','padding-top': '.5in'}),
        dbc.Row([
            dbc.Col([
-           html.H6("Filter by dimension",style={'textAlign':'center'}),
+           html.H6("Filter by Dimension",style={'textAlign':'center'}),
                 dcc.Dropdown(
-                id='ammo-dimension-p',
-                options=[{'label': i, 'value': i} for i in pricing_dimensions],
-                multi=False,
-                value='Pen Power by Price',
-                style={'width':'auto','margin-left':'1in'}
+                        id='ammo-dimension-p',
+                        options=[{'label': i, 'value': i} for i in pricing_dimensions],
+                        multi=False,
+                        value='Pen Power by Price',
+                        style={'width':'3in','margin-left':'1in'}
                         ),  
                     ],align='center'),
             dbc.Col([
             html.H6("Filter by Ammo Type",style={'textAlign':'center'}),
                 dcc.Dropdown(
-                id='ammo-type-p',
-                options=[{'label': i, 'value': i} for i in caliber_types],
-                multi=True,
-                value=['12/70 slugs'],
-                style={'width':'auto','margin-left':'1in'}
+                        id='ammo-type-p',
+                        options=[{'label': i, 'value': i} for i in caliber_types],
+                        multi=True,
+                        value=['12/70 slugs'],
+                        style={'width':'auto','margin-left':'1in'}
                             )
                     ],align='center'),
         ],align='center'),
@@ -206,9 +223,14 @@ layout = (dbc.NavbarSimple(
                 clickData= {'points': [{'label': '12/70 FTX Custom LIte Slug'}]},
                 
                         )
-                    ],width=9,align='start'),
-            ],className="twelve columns"),
-                
+                    ],width=9,align='right'),
+            ]),
+    
+    html.Div([
+        dbc.Col([
+            html.H6('Improvements Pending')
+        ],align='center'),
+    ],style={'background':'lightgrey','textAlign':'center'})
 
 )
 
@@ -238,6 +260,7 @@ def update_ammo_test(ammo_type, ammo_dimen):
         else:
             break
         dic['data'].append(inside_dic)
+        
     return dic
 
 

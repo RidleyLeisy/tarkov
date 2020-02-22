@@ -129,7 +129,14 @@ layout = (dbc.NavbarSimple(
             dbc.Col([
                 dash_table.DataTable(id='gun_table',
                 columns=[
-                {'name': 'Gun Name', 'id': 'Gun Name'}]),
+                {'name': 'Gun Name', 'id': 'Gun Name'}],
+                style_cell={'textAlign': 'left'},
+                    style_header={
+                'backgroundColor': 'white',
+                'fontWeight': 'bold'},
+                fill_width=False,
+                style_as_list_view=True,
+                                    ),
                 
             ]),
 
@@ -267,7 +274,7 @@ def display_output(clickData):
     guns = []
     for click in clickData:
         guns.extend(gun_dict.get(click))
-        
+
     guns = list(set(guns))
     dff = pd.DataFrame(guns,columns=['Gun Name'])
 

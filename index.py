@@ -1,3 +1,5 @@
+import dash
+import json
 import dash_core_components as dcc
 import dash_bootstrap_components as dbc
 import dash_html_components as html
@@ -5,6 +7,13 @@ from dash.dependencies import Input, Output
 
 from app import app
 from apps import ammo, gun, home
+from app import server
+
+import dash_table
+from textwrap import dedent as d
+import pandas as pd
+
+from app import app
 
 
 

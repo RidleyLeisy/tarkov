@@ -1,6 +1,7 @@
 import dash
 import json
 import dash_core_components as dcc
+import dash_table
 import dash_html_components as html
 from dash.dependencies import Input, Output
 from textwrap import dedent as d
@@ -13,9 +14,36 @@ from app import app
 
 df = pd.read_csv('init.csv')
 
+
+gun_dict = {'7.62x25mm Tokarev':['TT pistol','TT pistol (gold)'],
+           '9x18mm Makarov': ['APB','APS','PB pistol','PM (t) pistol','PM pistol','PP-9 "Klin"',
+           'PP-91 "Kedr"','PP-91-01 "Kedr-B"'],
+           '9x19mm Parabellum':['GLOCK17','GLOCK18C','M9A3','MP-443 "Grach"','P226R',
+                               'MP5','MP5K-N','MPX','PP-19-01 Vityaz-SN','Saiga-9','MP9','MP9-N'],
+           '9x21mm Gyurza':['SR-1MP Gyurza'],
+           '4.6x30mm HK':['MP7A1','MP7A2'],
+           '5.7x28mm FN':['FN 5-7','P90'],
+           '5.45x39mm':['AK-105','AK-74','AK-74M','AK-74N','AKS-74','AKS-74N','AKS-74U',
+                       'AKS-74UB','AKS-74UN','RPK-16'],
+           '5.56x45mm NATO':['ADAR 2-15','AK-101','AK-102','DT MDR','HK 416A5','M4A1','TX-15 DML'],
+           '7.62x39mm':['OP-SKS','SKS','AK-103','AK-104','AKM','AKMN','AKMS','AKMSN','Vepr KM/VPO-136'],
+           '7.62x51mm NATO':['Vepr Hunter/VPO-101','SA-58','DT MDR .308','M1A','RSASS','SR-25','DVL-10',
+                            'M700','T-5000'],
+           '7.62x54mmR':['SVDS','Mosin','Mosin Inf.','SV-98'],
+           '9x39mm':['AS VAL','VSS Vintorez'],
+           '.366 TKM':['Vepr AKM/VPO-209','VPO-215'],
+           '12.7x55mm STs-130':['ASh-12'],
+           '12.7x108mm':['NSV "Utes"'],
+           '12/70 slugs':['M870','MP-133','MP-153','Saiga-12'],
+           '12/70 shot':['M870','MP-133','MP-153','Saiga-12'],
+           '20x70mm':['TOZ-106']}
+
+
 caliber_types = df['Caliber'].unique()
 dimensions = ['Flesh Damage','Penetration Power','Armor Damage (%)','Accuracy (%)','Recoil (%)','Fragmentation Chance (%)']
 pricing_dimensions = ['Pen Power by Price','Flesh Damage by Price']
+
+table_params = ['Gun Name']
 
 layout = (dbc.NavbarSimple(
         children=[
@@ -34,22 +62,22 @@ layout = (dbc.NavbarSimple(
         html.H3('Tarkov Ammo Updates'),
         dbc.Row([
             dbc.Col(
-            dbc.CardHeader([html.H5('Priciest Ammo'),
+            dbc.CardHeader([html.H5("Today's Most Expensive Ammo"),
             dbc.CardBody(html.H6(df[['Bullet Name','Current Price']].max()['Bullet Name'])),
     
             ],id="pricey_num"),),
             dbc.Col(
-            dbc.CardHeader([html.H5('Cheapest Ammo'),
+            dbc.CardHeader([html.H5("Today's Cheapest Ammo"),
             dbc.CardBody(html.H6(df[['Bullet Name','Current Price']].min()['Bullet Name'])),
 
             ],id="chaep_num"),),
             dbc.Col(
-            dbc.CardHeader([html.H5('Higheset Weekly Price Increase'),
+            dbc.CardHeader([html.H5('Largest Weekly Price Increase'),
             dbc.CardBody(html.H6(df[['Bullet Name','1 week Price Diff']].max()['Bullet Name'])),
     
             ],id="weekly_in_num"),),
             dbc.Col(
-            dbc.CardHeader([html.H5('Lowest Weekly Price Increase'),
+            dbc.CardHeader([html.H5('Largest Weekly Price Decrease'),
             dbc.CardBody(html.H6(df[['Bullet Name','1 week Price Diff']].min()['Bullet Name'])),
     
             ],id="weekly_de_num"),),
@@ -98,22 +126,21 @@ layout = (dbc.NavbarSimple(
                 
                         )
                     ],width=9,align='start'),
-        dbc.Col([
-                html.H6('Daily Pricing',style={'textAlign':'center'}),
-                html.Table([
-                    html.Tr([html.Td(['Ammo Selected']), html.Td(id='ammoSelect')],style={'background-color': '#f5f5f5'}),
-                    html.Tr([html.Td(['Current Price (R)']), html.Td(id='currentPrice')]),
-                    html.Tr([html.Td(['Past 24 Hours (%)']), html.Td(id='past24')]),
-                    html.Tr([html.Td(['Past 7 Days (%)']), html.Td(id='past7d')]),
-                ],style={'title':'Pricing'}),     
-                ],align='center'),
+            dbc.Col([
+                dash_table.DataTable(id='gun_table',
+                columns=[
+                {'name': 'Gun Name', 'id': 'Gun Name'}]),
+                
+            ]),
+
             ])
             ]),
             
-    # maybe add pen armor values in between along with a radar chart
+    # maybe add ammo compabaility with list of weapons the selected ammo can go with
 
     html.Div([
         dbc.Row([
+            dbc.Col([
             dcc.Graph(
                 id='radarFig',
                 figure={'layout': {'polar': {
@@ -125,6 +152,16 @@ layout = (dbc.NavbarSimple(
             'showlegend': True}
                         }
             ),
+                    ]),
+            dbc.Col([
+                html.H6('Daily Pricing',style={'textAlign':'center'}),
+                html.Table([
+                    html.Tr([html.Td(['Ammo Selected']), html.Td(id='ammoSelect')],style={'background-color': '#f5f5f5'}),
+                    html.Tr([html.Td(['Current Price (R)']), html.Td(id='currentPrice')]),
+                    html.Tr([html.Td(['Past 24 Hours (%)']), html.Td(id='past24')]),
+                    html.Tr([html.Td(['Past 7 Days (%)']), html.Td(id='past7d')]),
+                ],style={'title':'Pricing'}),     
+                ],align='center'),
         ])
 
     ]),
@@ -223,6 +260,20 @@ def create_price_graph(ammo_type_p,ammo_dimen):
     return data
 
 
+# Gun click data for Table
+@app.callback(Output('gun_table', 'data'), 
+                [Input('ammo-type-p', 'value')])
+def display_output(clickData):
+    guns = []
+    for click in clickData:
+        guns.extend(gun_dict.get(click))
+        
+    guns = list(set(guns))
+    dff = pd.DataFrame(guns,columns=['Gun Name'])
+
+    return dff.to_dict('rows')
+
+
 
 # Ammo Click Data for Table
 @app.callback(
@@ -249,7 +300,6 @@ def radar_click_data(clickData):
     'theta': ['Level One','Level Two','Level Three', 'Level Four', 'Level Five', 'Level Six'],
     'fill': 'toself',
     'fillcolor':'red'}]}
-    print(data)
     return data
 
 

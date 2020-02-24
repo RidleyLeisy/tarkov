@@ -7,7 +7,7 @@ from dash.dependencies import Input, Output
 
 from app import app
 from apps import ammo, gun, home
-from app import server
+
 
 import dash_table
 from textwrap import dedent as d

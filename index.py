@@ -13,7 +13,7 @@ import dash_table
 from textwrap import dedent as d
 import pandas as pd
 
-from app import app
+from app import server
 
 
 

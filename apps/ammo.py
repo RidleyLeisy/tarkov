@@ -53,7 +53,7 @@ layout = (
         dbc.Row([
             dbc.Col(
             dbc.CardHeader([html.H5("Today's Most Expensive Ammo"),
-            dbc.CardBody(html.H6(df[['Bullet Name','Current Price']].max()['Bullet Name'])),
+            dbc.CardBody(html.H6(df[['Current Price','Bullet Name']].sort_values(by='Current Price').iloc[-1]['Bullet Name'])),
     
             ],id="pricey_num"),),
             dbc.Col(

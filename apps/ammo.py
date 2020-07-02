@@ -36,7 +36,8 @@ gun_dict = {'7.62x25mm Tokarev':['TT pistol','TT pistol (gold)'],
            '12.7x108mm':['NSV "Utes"'],
            '12/70 slugs':['M870','MP-133','MP-153','Saiga-12'],
            '12/70 shot':['M870','MP-133','MP-153','Saiga-12'],
-           '20x70mm':['TOZ-106']}
+           '20x70mm':['TOZ-106'],
+           '.45 ACP':['.45 RIP','.45 ACP FMJ']}
 
 
 caliber_types = df['Caliber'].unique()
